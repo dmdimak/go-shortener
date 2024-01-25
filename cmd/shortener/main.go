@@ -5,11 +5,11 @@ import (
 	"net/http"
 )
 
-var storedUrl string = ""
+var storedURL string = ""
 
 func main() {
 	mux := http.NewServeMux()
-	mux.HandleFunc(`/`, treatUrl)
+	mux.HandleFunc(`/`, treatURL)
 
 	err := http.ListenAndServe(`:8080`, mux)
 	if err != nil {
@@ -17,7 +17,7 @@ func main() {
 	}
 }
 
-func treatUrl(w http.ResponseWriter, r *http.Request) {
+func treatURL(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost {
 
@@ -33,7 +33,7 @@ func treatUrl(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		storedUrl = string(body)
+		storedURL = string(body)
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
@@ -41,7 +41,7 @@ func treatUrl(w http.ResponseWriter, r *http.Request) {
 		return
 	} else if r.Method == http.MethodGet {
 
-		w.Header().Set("Location", storedUrl)
+		w.Header().Set("Location", storedURL)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		return
 	}
