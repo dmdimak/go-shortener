@@ -3,15 +3,19 @@ package main
 import (
 	"io"
 	"net/http"
+
+	"github.com/go-chi/chi"
 )
 
 var storedURL string = ""
 
 func main() {
-	mux := http.NewServeMux()
-	mux.HandleFunc(`/`, treatURL)
 
-	err := http.ListenAndServe(`:8080`, mux)
+	r := chi.NewRouter()
+	r.Get("/", treatURL)
+	r.Post("/", treatURL)
+
+	err := http.ListenAndServe(`:8080`, r)
 	if err != nil {
 		panic(err)
 	}
