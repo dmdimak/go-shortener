@@ -14,8 +14,8 @@ var storedURL string = ""
 func main() {
 
 	r := chi.NewRouter()
-	r.Get("/", treatURL)
-	r.Post("/", treatURL)
+	r.MethodFunc("GET", "/", treatURL)
+	r.MethodFunc("POST", "/", treatURL)
 
 	err := http.ListenAndServe(`:8080`, r)
 	if err != nil {
