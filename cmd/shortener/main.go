@@ -13,11 +13,13 @@ var storedURL string = ""
 
 func main() {
 
+	parseFlags()
+
 	r := chi.NewRouter()
 	r.MethodFunc("GET", "/{id}", treatURL)
 	r.MethodFunc("POST", "/", treatURL)
 
-	err := http.ListenAndServe(`:8080`, r)
+	err := http.ListenAndServe(flagRunAddr, r)
 	if err != nil {
 		panic(err)
 	}
@@ -33,7 +35,6 @@ func treatURL(w http.ResponseWriter, r *http.Request) {
 		}
 
 		body, err := io.ReadAll(r.Body)
-		println(r.Body, body)
 
 		if err != nil {
 			http.Error(w, "Error parse request", http.StatusBadRequest)
@@ -44,7 +45,7 @@ func treatURL(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
-		w.Write([]byte("http://localhost:8080/EwHXdJfB"))
+		w.Write([]byte(baseShortenedURL + "/EwHXdJfB"))
 		return
 	} else if r.Method == http.MethodGet {
 		w.Header().Set("Location", storedURL)
