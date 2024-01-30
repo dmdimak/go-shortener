@@ -41,14 +41,12 @@ func treatURL(w http.ResponseWriter, r *http.Request) {
 		}
 
 		storedURL = string(body)
-		println(`Method POST`, storedURL, " -> ", string(body))
 
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte("http://localhost:8080/EwHXdJfB"))
 		return
 	} else if r.Method == http.MethodGet {
-		println(`Method GET`, storedURL)
 		w.Header().Set("Location", storedURL)
 		w.WriteHeader(http.StatusTemporaryRedirect)
 		return
