@@ -3,6 +3,7 @@ package main
 import (
 	"io"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi"
 )
@@ -18,6 +19,14 @@ func main() {
 	r := chi.NewRouter()
 	r.MethodFunc("GET", "/{id}", treatURL)
 	r.MethodFunc("POST", "/", treatURL)
+
+	if runAddr := os.Getenv("SERVER_ADDRESS"); runAddr != "" {
+		flagRunAddr = runAddr
+	}
+
+	if baseUrl := os.Getenv("BASE_URL"); baseUrl != "" {
+		baseShortenedURL = baseUrl
+	}
 
 	err := http.ListenAndServe(flagRunAddr, r)
 	if err != nil {
