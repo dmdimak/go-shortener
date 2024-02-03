@@ -24,8 +24,8 @@ func main() {
 		flagRunAddr = runAddr
 	}
 
-	if baseUrl := os.Getenv("BASE_URL"); baseUrl != "" {
-		baseShortenedURL = baseUrl
+	if baseURL := os.Getenv("BASE_URL"); baseURL != "" {
+		baseShortenedURL = baseURL
 	}
 
 	err := http.ListenAndServe(flagRunAddr, r)
