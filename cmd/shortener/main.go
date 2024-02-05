@@ -4,11 +4,37 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-chi/chi"
+	"go.uber.org/zap"
 )
 
 var storedURL string = ""
+var sugar zap.SugaredLogger
+
+type (
+	responseData struct {
+		status int
+		size   int
+	}
+
+	loggingResponseWriter struct {
+		http.ResponseWriter
+		responseData *responseData
+	}
+)
+
+func (r *loggingResponseWriter) Write(b []byte) (int, error) {
+	size, err := r.ResponseWriter.Write(b)
+	r.responseData.size += size
+	return size, err
+}
+
+func (r *loggingResponseWriter) WriteHeader(statusCode int) {
+	r.ResponseWriter.WriteHeader(statusCode)
+	r.responseData.status = statusCode
+}
 
 // update
 
@@ -16,9 +42,18 @@ func main() {
 
 	parseFlags()
 
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		panic(err)
+	}
+
+	defer logger.Sync()
+	sugar = *logger.Sugar()
+
 	r := chi.NewRouter()
 	r.MethodFunc("GET", "/{id}", treatURL)
 	r.MethodFunc("POST", "/", treatURL)
+	r.Use(withLogger)
 
 	if runAddr := os.Getenv("SERVER_ADDRESS"); runAddr != "" {
 		flagRunAddr = runAddr
@@ -28,7 +63,13 @@ func main() {
 		baseShortenedURL = baseURL
 	}
 
-	err := http.ListenAndServe(flagRunAddr, r)
+	sugar.Infow(
+		"Starting server",
+		"addr", flagRunAddr,
+		"baseURL", baseShortenedURL,
+	)
+
+	err = http.ListenAndServe(flagRunAddr, r)
 	if err != nil {
 		panic(err)
 	}
@@ -63,4 +104,38 @@ func treatURL(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.Error(w, "Only POST or GET method is allowed", http.StatusBadRequest)
+
+}
+
+func withLogger(h http.Handler) http.Handler {
+	logFn := func(w http.ResponseWriter, r *http.Request) {
+		start := time.Now()
+
+		responseData := &responseData{
+			status: 0,
+			size:   0,
+		}
+
+		lw := loggingResponseWriter{
+			ResponseWriter: w,
+			responseData:   responseData,
+		}
+
+		uri := r.RequestURI
+		method := r.Method
+
+		h.ServeHTTP(&lw, r)
+
+		duration := time.Since(start)
+
+		sugar.Infoln(
+			"uri", uri,
+			"method", method,
+			"status", responseData.status,
+			"duration", duration,
+			"size", responseData.size,
+		)
+	}
+
+	return http.HandlerFunc(logFn)
 }
