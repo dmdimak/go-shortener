@@ -51,9 +51,9 @@ func main() {
 	sugar = *logger.Sugar()
 
 	r := chi.NewRouter()
+	r.Use(withLogger)
 	r.MethodFunc("GET", "/{id}", treatURL)
 	r.MethodFunc("POST", "/", treatURL)
-	r.Use(withLogger)
 
 	if runAddr := os.Getenv("SERVER_ADDRESS"); runAddr != "" {
 		flagRunAddr = runAddr
